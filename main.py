@@ -1,53 +1,29 @@
-import os
-import threading
-import time
-import requests
+import os, threading, time, requests, random
 from flask import Flask
-
 app = Flask(__name__)
-
-BOT_TOKEN = os.environ.get("BOT_TOKEN", "COLOQUE_SEU_TOKEN_AQUI")
-CHANNEL_ID = os.environ.get("CHANNEL_ID", "@seu_canal_ou_id")
-
-@app.route("/")
-def home():
-    return "Bot Bullex EURUSD Online!"
-
-@app.route("/status")
-def status():
-    return "Rodando 24h no Render"
-
-def enviar_sinal():
-    url = f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage"
+BOT_TOKEN = os.environ.get("BOT_TOKEN","")
+CHANNEL_ID = os.environ.get("CHANNEL_ID","")
+def enviar(m):
+    try:
+        requests.post(f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage", json={"chat_id": CHANNEL_ID, "text": m, "parse_mode": "HTML"}, timeout=10)
+    except: pass
+def bot_loop():
+    enviar("🚀 Bot reconfigurado! Agora com WIN/LOSS automatico $9")
     while True:
-        try:
-            mensagem = "🔔 SINAL BULLEX EURUSD\n\nPar: EURUSD\nDireção: COMPRA 📈\nHorário: Próxima vela M5\n\nTeste bot rodando!"
-            data = {"chat_id": CHANNEL_ID, "text": mensagem}
-            requests.post(url, data=data, timeout=10)
-            print("Sinal enviado!")
-        except Exception as e:
-            print(f"Erro: {e}")
-        time.sleep(300)  # envia a cada 5 minutos para teste
-
-if __name__ == "__main__":
-    t = threading.Thread(target=enviar_sinal)
-    t.daemon = True
-    t.start()
-    port = int(os.environ.get("PORT", 8080))
-    app.run(host="0.0.0.0", port=port)
-import os
-from flask import Flask
-
-app = Flask(__name__)
-
+        direcao = random.choice(["COMPRA","VENDA"])
+        botao = "ACIMA" if direcao=="COMPRA" else "ABAIXO"
+        preco = 1.12 + random.uniform(0.005,0.04)
+        enviar(f"🔔 <b>SINAL BULLEX EUR/USD</b>\n\nDirecao: <b>{direcao} - {botao}</b>\nValor: <b>$9</b>\nEntrada: <b>{preco:.5f}</b>\nTempo: <b>M5</b>\n\nEntre na proxima vela!")
+        time.sleep(300)
+        preco_f = preco + random.uniform(-0.003,0.003)
+        win = preco_f > preco if direcao=="COMPRA" else preco_f < preco
+        if win:
+            enviar(f"✅ <b>WIN +88%</b> +$7,92\nEntrada {preco:.5f} -> {preco_f:.5f}")
+        else:
+            enviar(f"❌ <b>LOSS</b> {preco:.5f}->{preco_f:.5f}\nGALE 1 = $18")
+        time.sleep(10)
 @app.route("/")
-def home():
-    return "Bot Bullex EURUSD Online!"
-
+def home(): return "Bot Online $9 WIN/LOSS"
 @app.route("/status")
-def status():
-    return "Rodando 24h no Railway"
-
-if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 8080))
-    app.run(host="0.0.0.0", port=port)
+def status(): return "Rodando 24h"
+threading.Thread(target=bot_loop, daemon=True).start()
