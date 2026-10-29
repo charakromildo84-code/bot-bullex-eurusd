@@ -1,61 +1,32 @@
-import os, threading, time, requests, random
+import os, time, random, threading, requests
 from flask import Flask
-
 app = Flask(__name__)
-TOKEN = os.getenv("BOT_TOKEN","")
-CHAT = os.getenv("CHANNEL_ID","")
 
-def enviar(txt):
-    url = "https://api.telegram.org/bot" + TOKEN + "/sendMessage"
+TOKEN = os.getenv("TELEGRAM_TOKEN")
+CHAT_ID = os.getenv("TELEGRAM_CHAT_ID")
+
+def send_telegram(msg):
     try:
-        requests.post(url, json={
-            "chat_id": CHAT,
-            "text": txt,
-            "parse_mode": "HTML"
-        }, timeout=10)
-    except:
-        pass
-
-def bot_loop():
-    enviar("🚀 Bot reconfigurado! $9 WIN/LOSS auto")
-    while True:
-        d = "COMPRA"
-        if random.random() > 0.5:
-            d = "VENDA"
-        b = "ACIMA"
-        if d == "VENDA":
-            b = "ABAIXO"
-        p = 1.12 + random.uniform(0.005, 0.04)
-
-        msg = "🔔 <b>SINAL BULLEX EUR/USD</b>\n\n"
-        msg += f"Direcao: <b>{d} - {b}</b>\n"
-        msg += f"Valor: <b>$9</b>\n"
-        msg += f"Entrada: <b>{p:.5f}</b>\n"
-        msg += f"Tempo: <b>M5</b>"
-
-        enviar(msg)
-        time.sleep(300)
-
-        f = p + random.uniform(-0.003, 0.003)
-        win = False
-        if d == "COMPRA":
-            win = f > p
-        else:
-            win = f < p
-
-        if win:
-            enviar(f"✅ <b>WIN +88%</b> +$7,92\n{p:.5f}->{f:.5f}")
-        else:
-            enviar(f"❌ <b>LOSS</b> {p:.5f}->{f:.5f}\nGALE 1 = $18")
-
-        time.sleep(10)
+        requests.post(f"https://api.telegram.org/bot{TOKEN}/sendMessage",
+        json={"chat_id": CHAT_ID, "text": msg, "parse_mode": "HTML"}, timeout=10)
+    except: pass
 
 @app.route("/")
-def home():
-    return "Bot Online $9"
+def home(): return "Bot Online $9 - Sem Flood"
 
-@app.route("/status")
-def status():
-    return "Rodando 24h"
+def bot_loop():
+    while True:
+        try:
+            preco = 1.08500 + random.uniform(-0.003, 0.003)
+            send_telegram(f"🔔 SINAL BULLEX EUR/USD\nValor: $9\nDirecao: COMPRA 📈\nEntrada: {preco:.5f}\nTempo: M5")
+            time.sleep(300)
+            if random.choice([True,True,True,False]):
+                send_telegram("✅ WIN +88% +$7,92 - EURUSD")
+            else:
+                send_telegram("❌ LOSS EURUSD - GALE 1 = $18")
+            time.sleep(600)
+        except: time.sleep(60)
 
 threading.Thread(target=bot_loop, daemon=True).start()
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", port=10000)
