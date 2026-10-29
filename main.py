@@ -4,11 +4,11 @@ from flask import Flask
 app = Flask(__name__)
 TOKEN = os.getenv("BOT_TOKEN","")
 CHAT = os.getenv("CHANNEL_ID","")
-API = f"https://api.telegram.org/bot{TOKEN}/sendMessage"
 
 def enviar(txt):
+    url = "https://api.telegram.org/bot" + TOKEN + "/sendMessage"
     try:
-        requests.post(API, json={
+        requests.post(url, json={
             "chat_id": CHAT,
             "text": txt,
             "parse_mode": "HTML"
@@ -19,21 +19,29 @@ def enviar(txt):
 def bot_loop():
     enviar("🚀 Bot reconfigurado! $9 WIN/LOSS auto")
     while True:
-        d = random.choice(["COMPRA","VENDA"])
-        b = "ACIMA" if d=="COMPRA" else "ABAIXO"
-        p = 1.12 + random.uniform(0.005,0.04)
+        d = "COMPRA"
+        if random.random() > 0.5:
+            d = "VENDA"
+        b = "ACIMA"
+        if d == "VENDA":
+            b = "ABAIXO"
+        p = 1.12 + random.uniform(0.005, 0.04)
 
-        enviar(
-            f"🔔 <b>SINAL BULLEX EUR/USD</b>\n\n"
-            f"Direcao: <b>{d} - {b}</b>\n"
-            f"Valor: <b>$9</b>\n"
-            f"Entrada: <b>{p:.5f}</b>\n"
-            f"Tempo: <b>M5</b>"
-        )
+        msg = "🔔 <b>SINAL BULLEX EUR/USD</b>\n\n"
+        msg += f"Direcao: <b>{d} - {b}</b>\n"
+        msg += f"Valor: <b>$9</b>\n"
+        msg += f"Entrada: <b>{p:.5f}</b>\n"
+        msg += f"Tempo: <b>M5</b>"
 
+        enviar(msg)
         time.sleep(300)
-        f = p + random.uniform(-0.003,0.003)
-        win = f > p if d=="COMPRA" else f < p
+
+        f = p + random.uniform(-0.003, 0.003)
+        win = False
+        if d == "COMPRA":
+            win = f > p
+        else:
+            win = f < p
 
         if win:
             enviar(f"✅ <b>WIN +88%</b> +$7,92\n{p:.5f}->{f:.5f}")
