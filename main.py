@@ -1,54 +1,40 @@
 import os
 import time
-import threading
 import random
+import threading
 from flask import Flask
 import telebot
 
-TOKEN = os.getenv("TELEGRAM_TOKEN")
-CHAT_ID = os.getenv("CHAT_ID", "@alertadesinais_tredvip")
-bot = telebot.TeleBot(TOKEN)
+BOT_TOKEN = os.environ.get("BOT_TOKEN")
+CHAT_ID = os.environ.get("CHAT_ID")
+
+if not BOT_TOKEN:
+    BOT_TOKEN = "SEU_TOKEN_AQUI"
+if not CHAT_ID:
+    CHAT_ID = "-1002707115162"
+
 app = Flask(__name__)
+bot = telebot.TeleBot(BOT_TOKEN)
 
 @app.route('/')
 def home():
-    return "Bot Live - MODO ESTUDO"
+    return "Bot Live - OK", 200
 
 def loop_sinais():
-    print("Loop MODO ESTUDO iniciado - mandando a cada 5 min")
-    count = 0
+    print("Loop iniciado")
     while True:
         try:
-            count += 1
-            # Alterna entre compra e venda pra estudo
-            if random.choice([True, False]):
-                sinal = "🟢 COMPRA EUR/USD - M5"
-                motivo = "Tendencia de alta"
-            else:
-                sinal = "🔴 VENDA EUR/USD - M5"
-                motivo = "Tendencia de baixa"
-
-            msg = f"""📊 SINAL DE ESTUDO #{count} - EUR/USD M5
-
-{sinal}
-Horario: 5 minutos
-Estrategia: Estudo
-
-⚠️ MODO TESTE - Apenas para estudo
-
-@alertadesinais_tredvip"""
-
+            direcao = random.choice(["COMPRA", "VENDA"])
+            horario = time.strftime("%H:%M:%S")
+            msg = f"🚀 SINAL VIP - MODO ESTUDO 🚀\nPar: EUR/USD\nDirecao: {direcao}\nHorario: {horario}"
             bot.send_message(CHAT_ID, msg)
-            print(f"SINAL ENVIADO #{count}: {sinal}")
-            
-            # Espera 5 minutos = 300 segundos
-            time.sleep(300)
-            
+            print(f"Enviado: {direcao}")
         except Exception as e:
-            print(f"Erro loop: {e}")
-            time.sleep(60)
+            print(f"Erro: {e}")
+        time.sleep(300)
 
-threading.Thread(target=lambda: app.run(host='0.0.0.0', port=int(os.environ.get("PORT", 10000)))).start()
 threading.Thread(target=loop_sinais, daemon=True).start()
-print("Bot VIP Online MODO ESTUDO!")
-bot.infinity_polling()
+
+if __name__ == "__main__":
+    port = int(os.environ.get("PORT", 10000))
+    app.run(host='0.0.0.0', port=port)
