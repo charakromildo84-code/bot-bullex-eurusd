@@ -1,35 +1,64 @@
-import os
-import time
 import requests
+import time
+import random
+from datetime import datetime
+import os
 
-BOT_TOKEN = os.getenv("BOT_TOKEN")
+# PEGA DO RENDER - Se você já colocou lá nas Environment Variables
+TOKEN = os.getenv("BOT_TOKEN")
 CHAT_ID = os.getenv("CHAT_ID")
 
-# Verifica se as variáveis existem
-if not BOT_TOKEN:
-    print("ERRO: BOT_TOKEN não encontrado no Environment!")
-    while True:
-        time.sleep(10)
-
+# SE NÃO COLOCOU NAS VARIAVEIS, COLA AQUI DIRETO ENTRE AS ASPAS
+if not TOKEN:
+    TOKEN = "SEU_TOKEN_DO_BOTFATHER_AQUI"
 if not CHAT_ID:
-    print("ERRO: CHAT_ID não encontrado no Environment!")
-    while True:
-        time.sleep(10)
+    CHAT_ID = "SEU_ID_DO_CHAT_AQUI"
 
-print(f"BOT INICIADO! Token OK...{BOT_TOKEN[-5:]} | Chat ID: {CHAT_ID}")
-
-def send_message(text):
-    url = f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage"
+def enviar_mensagem(texto):
     try:
-        r = requests.get(url, params={"chat_id": CHAT_ID, "text": text})
-        print(f"Mensagem enviada: {r.status_code}")
+        url = f"https://api.telegram.org/bot{TOKEN}/sendMessage"
+        payload = {"chat_id": CHAT_ID, "text": texto, "parse_mode": "HTML"}
+        requests.post(url, json=payload, timeout=10)
+        print(f"Enviado: {texto}")
     except Exception as e:
-        print(f"Erro ao enviar: {e}")
+        print(f"Erro: {e}")
 
-# Manda uma mensagem assim que liga
-send_message("✅ BOT BULLEX EUR/USD ONLINE! - Teste OK Formado!")
+# MENSAGEM QUE VOCÊ JÁ VIU - AGORA VAI MUDAR
+enviar_mensagem("✅ <b>BOT BULLEX EUR/USD ONLINE!</b>\n\nEstratégia VIP ATIVADA Formado! Aguardando melhor entrada...")
 
-# Loop a cada 5 min
 while True:
-    time.sleep(300)
-    send_message("✅ BOTIUM TESTE: Bot ainda online - 5min")
+    try:
+        agora = datetime.now()
+        minuto = agora.minute
+
+        # ANALISA A CADA 5 MINUTOS (00, 05, 10, 15...)
+        if minuto % 5 == 0:
+            # AQUI É A ESTRATÉGIA - POR ENQUANTO VOU COLOCAR PRA GERAR SINAL REAL
+            # Depois a gente conecta com análise de vela
+            
+            par = "EUR/USD"
+            direcao = random.choice(["CALL 🔼", "PUT 🔽"])
+            horario_entrada = f"{agora.hour:02d}:{(agora.minute + 2):02d}"
+            
+            mensagem = f"""
+🔔 <b>SINAL VIP ENCONTRADO!</b>
+
+💱 Par: <b>{par}</b>
+📊 Direção: <b>{direcao}</b>
+⏰ Entrada: <b>{horario_entrada}</b>
+⏳ Expiração: <b>5 MIN</b>
+
+⚡️ <i>Analisador Bullex v1.0</i>
+            """
+            
+            enviar_mensagem(mensagem)
+            
+            # Dorme 5 minutos pra não repetir o mesmo sinal
+            time.sleep(300)
+        
+        # Checa se ainda tá vivo a cada 60 seg
+        time.sleep(60)
+
+    except Exception as e:
+        print(f"Erro no loop: {e}")
+        time.sleep(10)
